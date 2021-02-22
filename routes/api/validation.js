@@ -2,7 +2,7 @@ const Joi = require('joi');
 
 const schemaAddContact = Joi.object({
   name: Joi.string().alphanum().min(3).max(30).required(),
-  phone: Joi.number().min(1).max(9999999999).required(),
+  phone: Joi.number().required(),
   email: Joi.string()
     .email({
       minDomainSegments: 2,
@@ -12,7 +12,7 @@ const schemaAddContact = Joi.object({
 });
 const schemaUpdateContact = Joi.object({
   name: Joi.string().alphanum().min(3).max(30).optional(),
-  phone: Joi.number().integer().min(3).max(10).optional(),
+  phone: Joi.number().optional(),
   email: Joi.string()
     .email({
       minDomainSegments: 2,
