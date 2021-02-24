@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/stylesheets/style.css" />
+  </head>
+  <body>
+    <h1><%= title %></h1>
+    <ul>
+      <%contacts.map(parseContact) %>
+    </ul>
+  </body>
+</html>
+
+<% function parseContact(contact) { %>
+<div>
+  <table border="1">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Phone</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <th><%= contact.name %></th>
+        <th><%= contact.email %></th>
+        <th><%= contact.phone %></th>
+      </tr>
+    </tbody>
+  </table>
+</div>
+<% } %>
