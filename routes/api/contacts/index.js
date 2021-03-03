@@ -1,9 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const url = require('url');
-const contactsController = require('../../controllers/contacts');
+const contactsController = require('../../../controllers/contacts');
 
-// const Contacts = require('../../services/services');
 const validate = require('./validation');
 
 router

@@ -1,12 +1,8 @@
-const Contacts = require('../services/services');
+const Contacts = require('../services/contacts');
 
 const getAll = async (req, res, next) => {
   try {
     const contacts = await Contacts.listContacts();
-    // res.render('contacts', {
-    //   title: 'Contacts',
-    //   contacts,
-    // });
     return res.json({
       status: 'success',
       code: 200,
@@ -22,10 +18,6 @@ const getAll = async (req, res, next) => {
 const getById = async (req, res, next) => {
   try {
     const contact = await Contacts.getById(req.params.id);
-    // res.render('contacts', {
-    //   title: 'Contacts',
-    //   contacts,
-    // });
     if (contact) {
       return res.json({
         status: 'success',
@@ -64,10 +56,6 @@ const create = async (req, res, next) => {
 const remove = async (req, res, next) => {
   try {
     const contact = await Contacts.removeContact(req.params.id);
-    // res.render('contacts', {
-    //   title: 'Contacts',
-    //   contacts,
-    // });
     if (contact) {
       return res.json({
         status: 'success',
@@ -89,10 +77,6 @@ const remove = async (req, res, next) => {
 const update = async (req, res, next) => {
   try {
     const contact = await Contacts.updateContact(req.params.id, req.body);
-    // res.render('contacts', {
-    //   title: 'Contacts',
-    //   contacts,
-    // });
     if (contact) {
       return res.json({
         status: 'success',

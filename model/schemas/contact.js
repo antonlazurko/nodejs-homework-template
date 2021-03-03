@@ -1,6 +1,5 @@
 const { version } = require('joi');
-const mongoose = require('mongoose');
-const { Schema, model } = mongoose;
+const { Schema, model, SchemaTypes } = require('mongoose');
 
 const contactSchema = new Schema(
   {
@@ -26,17 +25,21 @@ const contactSchema = new Schema(
     },
     password: {
       type: String,
-      required: [true, 'Set contact phone number'],
+      required: [true, 'Password required'],
       unique: true,
     },
     token: { type: String },
     // date: { type: Date, default: () => Date.now },
+    owner: {
+      type: SchemaTypes.ObjectId,
+      ref: 'user',
+    },
   },
   { versionKey: false, timestamps: true },
 );
 // contactSchema.virtual('name').get(function () {
 //   return this.name;
 // });
-const Contact = mongoose.model('contact', contactSchema);
+const Contact = model('contact', contactSchema);
 
 module.exports = Contact;
