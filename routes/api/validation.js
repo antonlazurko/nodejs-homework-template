@@ -1,14 +1,17 @@
 const Joi = require('joi');
 
 const schemaAddContact = Joi.object({
-  name: Joi.string().alphanum().min(3).max(30).required(),
-  phone: Joi.number().required(),
+  name: Joi.string().min(3).max(30).required(),
+  phone: Joi.required(),
   email: Joi.string()
-    .email({
-      minDomainSegments: 2,
-      tlds: { allow: ['com', 'net'] },
-    })
+    // .email({
+    //   minDomainSegments: 2,
+    //   tlds: { allow: ['com', 'net'] },
+    // })
     .required(),
+  subscription: Joi.string(),
+  password: Joi.string(),
+  token: Joi.required(),
 });
 const schemaUpdateContact = Joi.object({
   name: Joi.string().alphanum().min(3).max(30).optional(),

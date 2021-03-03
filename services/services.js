@@ -1,30 +1,66 @@
-const db = require('../model/db');
-const fs = require('fs').promises;
-const path = require('path');
-const { v4: uuidv4 } = require('uuid');
+// const { ObjectID } = require('mongodb');
+// const db = require('../model/db');
+const Contact = require('../model/schemas/contact');
 
-// const contactsPath = path.join(__dirname, '..', 'contacts.json');
+// const getCollection = async (db, name) => {
+//   const client = await db;
+//   const collection = await client.db().collection(name);
+//   return collection;
+// };
 
 async function listContacts() {
-  return db.get('contacts').value();
+  // const collection = await getCollection(db, 'contacts');
+  // const results = await collection.find({}).toArray();
+  const results = await Contact.find({});
+  return results;
+  // return db.get('contacts').value();
 }
 async function getById(id) {
-  return db.get('contacts').find({ id }).value();
+  // const collection = await getCollection(db, 'contacts');
+  // const objectId = new ObjectID(id);
+  // console.log(objectId.getTimestamp());
+  // const [results] = await collection.find({ _id: objectId }).toArray();
+  const results = await Contact.findOne({ _id: id });
+  return results;
+  // return db.get('contacts').find({ id }).value();
 }
 async function removeContact(id) {
-  const [record] = db.get('contacts').remove({ id }).write();
-  return record;
+  // const collection = await getCollection(db, 'contacts');
+  // const objectId = new ObjectID(id);
+  // const { value: result } = await collection.findOneAndUpdate({
+  //   _id: objectId,
+  // });
+  // const [record] = db.get('contacts').remove({ id }).write();
+  const result = await Contact.findByIdAndRemove({ _id: id });
+  return result;
 }
 async function addContact(body) {
-  const id = uuidv4();
-  const record = { id, ...body };
-  db.get('contacts').push(record).write();
-  return record;
+  // const record = { ...body };
+  // const collection = await getCollection(db, 'contacts');
+  // const {
+  //   ops: [result],
+  // } = await collection.insertOne(record);
+  // db.get('contacts').push(record).write();
+  const result = await Contact.create(body);
+  return result;
 }
 async function updateContact(id, body) {
-  const record = db.get('contacts').find({ id }).assign(body).value();
-  db.write();
-  return record.id ? record : null;
+  // const collection = await getCollection(db, 'contacts');
+  // const objectId = new ObjectID(id);
+  // const { value: result } = await collection.findOneAndUpdate(
+  //   { _id: objectId },
+  //   { $set: body },
+  //   { returnOriginal: false },
+  // );
+  const result = await Contact.findByIdAndUpdate(
+    { _id: id },
+    { ...body },
+    { new: true },
+  );
+  return result;
+  // const record = db.get('contacts').find({ id }).assign(body).value();
+  // db.write();
+  // return record.id ? record : null;
 }
 
 module.exports = {
