@@ -1,39 +1,24 @@
 const Joi = require('joi');
 
-const schemaAddUser = Joi.object({
-  name: Joi.string().alphanum().min(3).max(30).required(),
-  phone: Joi.number().required(),
+const schemaCreateUser = Joi.object({
   email: Joi.string()
-    .email({
-      minDomainSegments: 2,
-      tlds: { allow: ['com', 'net'] },
-    })
+    .email({ minDomainSegments: 2, tlds: { allow: ['com', 'net', 'org'] } })
     .required(),
-});
-const schemaUpdateUser = Joi.object({
-  name: Joi.string().alphanum().min(3).max(30).optional(),
-  phone: Joi.number().optional(),
-  email: Joi.string()
-    .email({
-      minDomainSegments: 2,
-      tlds: { allow: ['com', 'net'] },
-    })
-    .optional(),
+  password: Joi.string().min(1).max(20).required(),
 });
 
-function validate(schema, obj, next) {
+const validate = (schema, obj, next) => {
   const { error } = schema.validate(obj);
   if (error) {
     const [{ message }] = error.details;
     return next({
       status: 400,
-      message: `Missing fields: ${message.replace(/"/g, '')}`,
+      message: `Filed: ${message.replace(/"/g, '')}`,
     });
   }
-}
-module.exports.createUser = (req, res, next) => {
-  return validate(schemaAddUser, req.body, next);
+  next();
 };
-module.exports.updateUser = (req, res, next) => {
-  return validate(schemaUpdateUser, req.body, next);
+
+module.exports.createUser = (req, _res, next) => {
+  return validate(schemaCreateUser, req.body, next);
 };
