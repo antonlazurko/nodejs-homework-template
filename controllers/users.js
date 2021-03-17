@@ -3,7 +3,6 @@ require('dotenv').config();
 const Users = require('../services/users');
 const { HttpCode } = require('../helpers/constans');
 const SECRET_KEY = process.env.JWT_SECRET;
-
 const reg = async (req, res, next) => {
   try {
     const { email } = req.body;
@@ -13,7 +12,7 @@ const reg = async (req, res, next) => {
         status: 'error',
         code: HttpCode.CONFLICT,
         data: 'Conflict',
-        message: 'Email is allready use',
+        message: 'Email is already use',
       });
     }
     const newUser = await Users.create(req.body);
@@ -30,15 +29,17 @@ const reg = async (req, res, next) => {
     next(e);
   }
 };
+
 const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
     const user = await Users.findByEmail(email);
-    if (!user || !user.validPassword(password)) {
+    const isValidPassword = await user.validPassword(password);
+    if (!user || !isValidPassword) {
       return res.status(HttpCode.UNAUTHORIZED).json({
         status: 'error',
         code: HttpCode.UNAUTHORIZED,
-        data: 'Unauthorized',
+        data: 'UNAUTHORIZED',
         message: 'Invalid credentials',
       });
     }
@@ -57,9 +58,11 @@ const login = async (req, res, next) => {
     next(e);
   }
 };
+
 const logout = async (req, res, next) => {
   const id = req.user.id;
   await Users.updateToken(id, null);
-  return res.status(HttpCode.NO_CONTENT).json({ message: 'Nothing' });
+  return res.status(HttpCode.NO_CONTENT).json({});
 };
+
 module.exports = { reg, login, logout };
