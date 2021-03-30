@@ -1,4 +1,8 @@
 const jwt = require('jsonwebtoken');
+const fs = require('fs').promises;
+const path = require('path');
+const Jimp = require('jimp');
+const createFalderIsExist = require('../helpers/create-dir');
 require('dotenv').config();
 const Users = require('../services/users');
 const { HttpCode } = require('../helpers/constans');
@@ -32,6 +36,7 @@ const reg = async (req, res, next) => {
         id: newUser.id,
         email: newUser.email,
         name: newUser.name,
+        gravatar: newUser.ravatar,
       },
     });
   } catch (e) {
@@ -43,7 +48,7 @@ const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
     const user = await Users.findByEmail(email);
-    const isValidPassword = await user.validPassword(password);
+    const isValidPassword = await user?.validPassword(password);
     if (!user || !isValidPassword || !user.verify) {
       return res.status(HttpCode.UNAUTHORIZED).json({
         status: 'error',
@@ -94,4 +99,40 @@ const verify = async (req, res, next) => {
     next(e);
   }
 };
-module.exports = { reg, login, logout, verify };
+const avatars = async (res, req, next) => {
+  try {
+    const id = req.user.id;
+    const avatarUrl = await saveAvatatToStatic(req);
+    await Users.updateAvatar(id, avatar);
+    return res.json({
+      status: 'success',
+      code: HttpCode.OK,
+      data: { avatarUrl },
+    });
+  } catch (e) {
+    next(e);
+  }
+};
+const saveAvatatToStatic = async () => {
+  const id = req.user.id;
+  const AVATARS_OF_USERS = process.env.AVATARS_OF_USERS;
+  const pathFile = req.file.path;
+  const newNameAvatar = `${Date.now()}-${req.file.originalName}`;
+  const img = await Jimp.read(pathFile);
+  await img
+    .autocrop()
+    .cover(250, 250, Jimp.HORIZONTAL_ALIGN_CENTER | Jimp.VERTICAL_ALIGN_MIDDLE)
+    .writeAsync(pathFile);
+  await createFalderIsExist(path.join(AVATARS_OF_USERS, id));
+  await fs.rename(pathFile, path.join(AVATARS_OF_USERS, id, newNameAvatar));
+  const avatarUrl = path.normalize.path.join(id, newNameAvatar);
+  try {
+    await fs.unlink(
+      path.join(process.cwd(), AVATARS_OF_USERS, req.user.avatar),
+    );
+  } catch (e) {
+    console.log(e);
+  }
+  return avatarUrl;
+};
+module.exports = { reg, login, logout, avatars };

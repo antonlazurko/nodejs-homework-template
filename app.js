@@ -6,11 +6,13 @@ const { HttpCode } = require('./helpers/constans');
 const logger = require('morgan');
 const cors = require('cors');
 const path = require('path');
-
+require('dotenv').config();
 const contactsRouter = require('./routes/api/contacts');
 const usersRouter = require('./routes/api/users');
 const app = express();
 
+const AVATARS_OF_USERS = process.env.AVATARS_OF_USERS;
+app.use(express.static(path.join(__dirname, AVATARS_OF_USERS)));
 app.set('views', path.normalize('./views'));
 app.set('view engine', 'ejs');
 
