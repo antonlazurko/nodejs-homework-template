@@ -78,31 +78,11 @@ const logout = async (req, res, next) => {
   await Users.updateToken(id, null);
   return res.status(HttpCode.NO_CONTENT).json({});
 };
-const verify = async (req, res, next) => {
-  try {
-    const user = await Users.findByVerifyToken(req.params.token);
-    if (user) {
-      await Users.updateVerifyToken(user.id, true, null);
-      return res.json({
-        status: 'success',
-        code: HttpCode.OK,
-        message: 'Verification successfull',
-      });
-    }
-    return res.status(HttpCode.BAD_REQUEST).json({
-      status: 'error',
-      code: HttpCode.BAD_REQUEST,
-      data: 'Bad request',
-      message: 'Link is not valid',
-    });
-  } catch (e) {
-    next(e);
-  }
-};
+
 const avatars = async (res, req, next) => {
   try {
     const id = req.user.id;
-    const avatarUrl = await saveAvatatToStatic(req);
+    const avatarUrl = await saveAvatarToStatic(req);
     await Users.updateAvatar(id, avatar);
     return res.json({
       status: 'success',
@@ -113,7 +93,7 @@ const avatars = async (res, req, next) => {
     next(e);
   }
 };
-const saveAvatatToStatic = async () => {
+const saveAvatarToStatic = async () => {
   const id = req.user.id;
   const AVATARS_OF_USERS = process.env.AVATARS_OF_USERS;
   const pathFile = req.file.path;
@@ -135,4 +115,25 @@ const saveAvatatToStatic = async () => {
   }
   return avatarUrl;
 };
-module.exports = { reg, login, logout, avatars };
+const verify = async (req, res, next) => {
+  try {
+    const user = await Users.findByVerifyToken(req.params.token);
+    if (user) {
+      await Users.updateVerifyToken(user.id, true, null);
+      return res.json({
+        status: 'success',
+        code: HttpCode.OK,
+        message: 'Verification successfull',
+      });
+    }
+    return res.status(HttpCode.BAD_REQUEST).json({
+      status: 'error',
+      code: HttpCode.BAD_REQUEST,
+      data: 'Bad request',
+      message: 'Link is not valid',
+    });
+  } catch (e) {
+    next(e);
+  }
+};
+module.exports = { reg, login, logout, avatars, verify };
