@@ -3,10 +3,19 @@ const fs = require('fs').promises;
 const path = require('path');
 const Jimp = require('jimp');
 const createFalderIsExist = require('../helpers/create-dir');
+const { promisify } = require('util');
+const cloudinary = require('cloudinary').v2;
 require('dotenv').config();
 const Users = require('../services/users');
 const { HttpCode } = require('../helpers/constans');
 const SECRET_KEY = process.env.JWT_SECRET;
+cloudinary.config({
+  cloud_name: process.env.CLOUD_NAME,
+  api_key: process.env.API_KEY,
+  api_secret: process.env.API_SECRET,
+});
+
+const uploadCloud = promisify(cloudinary.uploader.upload);
 const reg = async (req, res, next) => {
   try {
     const { email } = req.body;
@@ -74,7 +83,11 @@ const avatars = async (res, req, next) => {
   try {
     const id = req.user.id;
     const avatarUrl = await saveAvatatToStatic(req);
-    await Users.updateAvatar(id, avatar);
+    // const {
+    //   public_id: imgIdCloud,
+    //   secure_url: avatarUrl,
+    // } = await saveAvatarToCloud(req);
+    await Users.updateAvatar(id, avatar, imgIdCloud);
     return res.json({
       status: 'success',
       code: HttpCode.OK,
@@ -105,5 +118,22 @@ const saveAvatatToStatic = async () => {
     console.log(e);
   }
   return avatarUrl;
+};
+const saveAvatarToCloud = async req => {
+  const pathFile = req.file.path;
+  const result = await uploadCloud(pathFile, {
+    public_id: req.user.imgIdCloud?.replace('avatars/', ''),
+    folder: 'avatars',
+    transformation: { width: 250, height: 250, crop: 'fill' },
+  });
+  cloudinary.uploader.destroy(req.user.imgIdCloud, (err, result) => {
+    console.log(err, result);
+  });
+  try {
+    await fs.unlink(pathFile);
+  } catch (error) {
+    console.log(error.message);
+  }
+  return result;
 };
 module.exports = { reg, login, logout, avatars };
