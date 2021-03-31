@@ -7,8 +7,8 @@ const findById = async id => {
   return await User.findOne({ _id: id });
 };
 
-const create = async ({ name, email, password, sex }) => {
-  const user = new User({ name, email, password, sex });
+const create = async ({ email, password, verify, verifyToken }) => {
+  const user = new User({ email, password, verify, verifyToken });
   return await user.save();
 };
 
@@ -16,7 +16,14 @@ const updateToken = async (id, token) => {
   return await User.updateOne({ _id: id }, { token });
 };
 const updateAvatar = async (id, avatar) => {
-  return await User.updateOne({ _id: id }, { avatar, imgIdCloud });
+  return await User.updateOne({ _id: id }, { avatar });
+};
+const findByVerifyToken = async verifyToken => {
+  return await User.findOneAndUpdate({ verifyToken });
+};
+const updateVerifyToken = async (id, verify, verifyToken) => {
+  return await User.updateOne({ _id: id }, { verify, verifyToken });
+
 };
 module.exports = {
   findByEmail,
@@ -24,4 +31,7 @@ module.exports = {
   create,
   updateToken,
   updateAvatar,
+  findByVerifyToken,
+  updateVerifyToken,
+
 };

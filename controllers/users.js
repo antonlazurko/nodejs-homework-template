@@ -8,17 +8,18 @@ const cloudinary = require('cloudinary').v2;
 require('dotenv').config();
 const Users = require('../services/users');
 const { HttpCode } = require('../helpers/constans');
+const EmailService = require('../service-email/email');
 const SECRET_KEY = process.env.JWT_SECRET;
+const { nanoid } = require('nanoid');
 cloudinary.config({
   cloud_name: process.env.CLOUD_NAME,
   api_key: process.env.API_KEY,
   api_secret: process.env.API_SECRET,
 });
-
 const uploadCloud = promisify(cloudinary.uploader.upload);
 const reg = async (req, res, next) => {
   try {
-    const { email } = req.body;
+    const { email, name } = req.body;
     const user = await Users.findByEmail(email);
     if (user) {
       return res.status(HttpCode.CONFLICT).json({
@@ -28,7 +29,14 @@ const reg = async (req, res, next) => {
         message: 'Email is already use',
       });
     }
-    const newUser = await Users.create(req.body);
+    const verifyToken = nanoid();
+    const emailService = new EmailService(process.env.NODE_ENV);
+    await emailService.sendEmail(verifyToken, email, name);
+    const newUser = await Users.create({
+      ...req.body,
+      verify: false,
+      verifyToken,
+    });
     return res.status(HttpCode.CREATED).json({
       status: 'success',
       code: HttpCode.CREATED,
@@ -49,7 +57,8 @@ const login = async (req, res, next) => {
     const { email, password } = req.body;
     const user = await Users.findByEmail(email);
     const isValidPassword = await user?.validPassword(password);
-    if (!user || !isValidPassword) {
+    if (!user || !isValidPassword || !user.verify) {
+
       return res.status(HttpCode.UNAUTHORIZED).json({
         status: 'error',
         code: HttpCode.UNAUTHORIZED,
@@ -119,6 +128,28 @@ const saveAvatatToStatic = async () => {
   }
   return avatarUrl;
 };
+const verify = async (req, res, next) => {
+  try {
+    const user = await Users.findByVerifyToken(req.params.token);
+    if (user) {
+      await Users.updateVerifyToken(user.id, true, null);
+      return res.json({
+        status: 'success',
+        code: HttpCode.OK,
+        message: 'Verification successfull',
+      });
+    }
+    return res.status(HttpCode.BAD_REQUEST).json({
+      status: 'error',
+      code: HttpCode.BAD_REQUEST,
+      data: 'Bad request',
+      message: 'Link is not valid',
+    });
+  } catch (e) {
+    next(e);
+  }
+};
+module.exports = { reg, login, logout, avatars, verify };
 const saveAvatarToCloud = async req => {
   const pathFile = req.file.path;
   const result = await uploadCloud(pathFile, {
