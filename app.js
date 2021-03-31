@@ -10,7 +10,6 @@ require('dotenv').config();
 const contactsRouter = require('./routes/api/contacts');
 const usersRouter = require('./routes/api/users');
 const app = express();
-
 const AVATARS_OF_USERS = process.env.AVATARS_OF_USERS;
 app.use(express.static(path.join(__dirname, AVATARS_OF_USERS)));
 app.set('views', path.normalize('./views'));

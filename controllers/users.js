@@ -3,12 +3,20 @@ const fs = require('fs').promises;
 const path = require('path');
 const Jimp = require('jimp');
 const createFalderIsExist = require('../helpers/create-dir');
+const { promisify } = require('util');
+const cloudinary = require('cloudinary').v2;
 require('dotenv').config();
 const Users = require('../services/users');
 const { HttpCode } = require('../helpers/constans');
 const EmailService = require('../service-email/email');
 const SECRET_KEY = process.env.JWT_SECRET;
 const { nanoid } = require('nanoid');
+cloudinary.config({
+  cloud_name: process.env.CLOUD_NAME,
+  api_key: process.env.API_KEY,
+  api_secret: process.env.API_SECRET,
+});
+const uploadCloud = promisify(cloudinary.uploader.upload);
 const reg = async (req, res, next) => {
   try {
     const { email, name } = req.body;
@@ -50,6 +58,7 @@ const login = async (req, res, next) => {
     const user = await Users.findByEmail(email);
     const isValidPassword = await user?.validPassword(password);
     if (!user || !isValidPassword || !user.verify) {
+
       return res.status(HttpCode.UNAUTHORIZED).json({
         status: 'error',
         code: HttpCode.UNAUTHORIZED,
@@ -82,8 +91,12 @@ const logout = async (req, res, next) => {
 const avatars = async (res, req, next) => {
   try {
     const id = req.user.id;
-    const avatarUrl = await saveAvatarToStatic(req);
-    await Users.updateAvatar(id, avatar);
+    const avatarUrl = await saveAvatatToStatic(req);
+    // const {
+    //   public_id: imgIdCloud,
+    //   secure_url: avatarUrl,
+    // } = await saveAvatarToCloud(req);
+    await Users.updateAvatar(id, avatar, imgIdCloud);
     return res.json({
       status: 'success',
       code: HttpCode.OK,
@@ -93,7 +106,7 @@ const avatars = async (res, req, next) => {
     next(e);
   }
 };
-const saveAvatarToStatic = async () => {
+const saveAvatatToStatic = async () => {
   const id = req.user.id;
   const AVATARS_OF_USERS = process.env.AVATARS_OF_USERS;
   const pathFile = req.file.path;
@@ -137,3 +150,21 @@ const verify = async (req, res, next) => {
   }
 };
 module.exports = { reg, login, logout, avatars, verify };
+const saveAvatarToCloud = async req => {
+  const pathFile = req.file.path;
+  const result = await uploadCloud(pathFile, {
+    public_id: req.user.imgIdCloud?.replace('avatars/', ''),
+    folder: 'avatars',
+    transformation: { width: 250, height: 250, crop: 'fill' },
+  });
+  cloudinary.uploader.destroy(req.user.imgIdCloud, (err, result) => {
+    console.log(err, result);
+  });
+  try {
+    await fs.unlink(pathFile);
+  } catch (error) {
+    console.log(error.message);
+  }
+  return result;
+};
+module.exports = { reg, login, logout, avatars };

@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const usersController = require('../../../controllers/users');
-const validate = require('./validation');
+// const validate = require('./validation');
 const guard = require('../../../helpers/guard');
 const upload = require('../../../helpers/upload');
 const { validateUploadAvatar } = require('./validation');
@@ -15,5 +15,4 @@ router.patch(
   usersController.avatars,
 );
 router.get('/verify/:token', usersController.verify);
-
 module.exports = router;
